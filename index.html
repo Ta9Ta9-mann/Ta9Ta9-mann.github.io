@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PHP &amp; MySQL – mysqli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&family=Playpen+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#fbf8ff; --ink:#2a1f4d; --soft:#6b5d92; --card:#ffffffb8; --code:#ffffffd9;
+  --lav:#ebe3fc; --lavb:#b9a6ee; --pink:#fde3ec; --pinkb:#f2a3bf;
+  --blue:#e0f0fc; --blueb:#8cc3ec; --green:#e0f5e9; --greenb:#86cfa5;
+  --peach:#fff0dc; --peachb:#f0b872; --mark:#ffd9e6;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1b1530; --ink:#f0e9ff; --soft:#b9abdc; --card:#ffffff10; --code:#0000003a;
+    --lav:#2e2552; --lavb:#7a63c4; --pink:#4a2438; --pinkb:#c0678c;
+    --blue:#1f3550; --blueb:#4f8fbf; --green:#1f4234; --greenb:#4f9a76;
+    --peach:#4a3822; --peachb:#b98a4a; --mark:#7a2f55;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1b1530; --ink:#f0e9ff; --soft:#b9abdc; --card:#ffffff10; --code:#0000003a;
+  --lav:#2e2552; --lavb:#7a63c4; --pink:#4a2438; --pinkb:#c0678c;
+  --blue:#1f3550; --blueb:#4f8fbf; --green:#1f4234; --greenb:#4f9a76;
+  --peach:#4a3822; --peachb:#b98a4a; --mark:#7a2f55;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Kalam','Playpen Sans Arabic',cursive;
+  background-image:radial-gradient(var(--lav) 1.2px,transparent 1.2px);background-size:26px 26px;padding:22px 16px 40px}
+.wrap{max-width:1180px;margin:auto}
+header{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;margin-bottom:22px}
+.note{background:#fffdf6;color:#3a2f5c;border:1.5px solid #d9cfee;padding:14px 18px;max-width:330px;transform:rotate(-2deg);
+  box-shadow:3px 4px 0 #0001;font-size:1rem;line-height:1.7;direction:rtl;font-family:'Playpen Sans Arabic','Kalam',sans-serif}
+.title{text-align:center;flex:1;min-width:260px}
+.title h1{font-family:'Caveat',cursive;font-size:clamp(2.4rem,6vw,3.8rem);margin:0;display:inline-block;padding:0 22px;
+  background:linear-gradient(transparent 25%,var(--mark) 25%,var(--mark) 88%,transparent 88%);transform:rotate(-1deg)}
+.title p{margin:6px 0 0;color:var(--soft);font-size:1.15rem;direction:rtl;font-family:'Playpen Sans Arabic','Kalam',sans-serif}
+.badge{font-family:'Caveat',cursive;font-size:1.7rem;background:var(--lav);border:2px solid var(--lavb);border-radius:14px;
+  padding:8px 18px;transform:rotate(2deg);white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.p{border:2.5px solid;border-radius:18px;padding:14px 18px 16px;background:var(--card);position:relative}
+.p h2{font-family:'Caveat',cursive;font-size:1.9rem;margin:-30px 0 10px -6px;display:inline-block;padding:2px 14px;
+  border-radius:10px;transform:rotate(-1deg);border:2px solid}
+.a{grid-column:span 6;border-color:var(--lavb)} .a h2{background:var(--lav);border-color:var(--lavb)}
+.b{grid-column:span 6;border-color:var(--pinkb)} .b h2{background:var(--pink);border-color:var(--pinkb)}
+.c{grid-column:span 6;border-color:var(--blueb)} .c h2{background:var(--blue);border-color:var(--blueb)}
+.d{grid-column:span 6;border-color:var(--greenb)} .d h2{background:var(--green);border-color:var(--greenb)}
+.e{grid-column:span 7;border-color:var(--peachb)} .e h2{background:var(--peach);border-color:var(--peachb)}
+.f{grid-column:span 5;border-color:var(--lavb)} .f h2{background:var(--lav);border-color:var(--lavb)}
+pre{margin:6px 0 10px;background:var(--code);border:2px dashed var(--soft);border-radius:14px;padding:10px 14px;
+  font-family:'Kalam',cursive;font-size:.95rem;line-height:1.55;overflow-x:auto;direction:ltr;text-align:left;color:var(--ink)}
+pre b{font-weight:700;background:linear-gradient(transparent 55%,var(--mark) 55%)}
+.ar{direction:rtl;text-align:right;font-family:'Playpen Sans Arabic','Kalam',sans-serif;font-size:1rem;line-height:1.85;margin:6px 0}
+.ar code,.tag{direction:ltr;unicode-bidi:isolate;font-family:'Kalam',cursive;font-weight:700;background:var(--mark);padding:0 7px;border-radius:7px}
+.fr{font-size:.92rem;color:var(--soft);margin:2px 0 4px}
+table{width:100%;border-collapse:collapse;font-size:.98rem}
+td{padding:5px 8px;border-bottom:2px dotted var(--peachb);vertical-align:top}
+td:first-child{font-weight:700;white-space:nowrap;direction:ltr}
+td:last-child{direction:rtl;text-align:right;font-family:'Playpen Sans Arabic','Kalam',sans-serif}
+ol{margin:4px 0;padding:0 0 0 0;list-style:none;counter-reset:s}
+li{counter-increment:s;display:flex;gap:10px;align-items:flex-start;margin:7px 0;direction:rtl;font-family:'Playpen Sans Arabic','Kalam',sans-serif;line-height:1.7}
+li>span{flex:1;min-width:0}
+li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--lav);border:2px solid var(--lavb);
+  display:grid;place-items:center;font-family:'Caveat',cursive;font-size:1.3rem;font-weight:700}
+.warn{margin-top:10px;background:var(--peach);border:2px dashed var(--peachb);border-radius:12px;padding:8px 12px;font-size:.95rem}
+.foot{margin-top:22px;text-align:right;font-family:'Caveat',cursive;font-size:1.9rem;color:var(--soft)}
+.g{grid-column:span 12;border-color:var(--pinkb)} .g h2{background:var(--pink);border-color:var(--pinkb)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:820px){.a,.b,.c,.d,.e,.f,.g{grid-column:span 12}.two{grid-template-columns:1fr}.note{transform:none;max-width:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="note" lang="ar">mysqli هي الجسر بين صفحة PHP وقاعدة بيانات MySQL: تتصل، تبعث طلب SQL، وتقرا النتيجة. ♡</div>
+  <div class="title">
+    <h1>PHP &amp; MySQL</h1>
+    <p lang="ar">كل شي يمشي بنفس الترتيب: اتصال ← طلب ← نتيجة</p>
+  </div>
+  <div class="badge">{• •} BAC INFO</div>
+</header>
+
+<div class="grid">
+
+<section class="p a">
+  <h2>1. Formulaire → PHP</h2>
+<pre>&lt;form action="traitement.php" method="POST"&gt;
+  &lt;input type="text" name="mat"&gt;
+  &lt;input type="submit" name="btn_send"&gt;
+&lt;/form&gt;</pre>
+<pre>if (<b>isset</b>($_POST['btn_send'])) {
+  $mat = <b>$_POST['mat']</b>;
+  echo "Reçu : ".$mat;
+}</pre>
+  <p class="ar" lang="ar"><code>$_POST['name']</code> تجيب القيمة لي كتبها المستخدم. <code>isset</code> تتأكد أن الزر تضغط عليه.</p>
+</section>
+
+<section class="p b">
+  <h2>2. Connexion</h2>
+  <p class="fr">connexion.php</p>
+<pre>$server = "localhost"; $user = "root";
+$pw = ""; $bd = "bac2024_db";
+
+$conn = <b>mysqli_connect</b>($server, $user, $pw, $bd);</pre>
+  <p class="ar" lang="ar">4 معطيات بالترتيب: السيرفر، اليوزر، الباسورد (فارغ في XAMPP)، واسم الـ base. المتغير <code>$conn</code> هو الاتصال لي نستعملوه في كل الطلبات.</p>
+</section>
+
+<section class="p c">
+  <h2>3. INSERT / UPDATE / DELETE</h2>
+<pre>$req = "INSERT INTO eleve (cin, nom, prenom)
+        VALUES ('$cin', '$nom', '$prenom')";
+$res = <b>mysqli_query</b>($conn, $req);
+
+"UPDATE eleve SET moyenne = 15.5 WHERE cin = '$cin'"
+"DELETE FROM eleve WHERE cin = '$cin'"
+
+if (<b>mysqli_affected_rows</b>($conn) &gt; 0) {
+  echo "Opération réussie !";
+}</pre>
+  <p class="ar" lang="ar"><code>mysqli_query($conn, $req)</code> تبعث الطلب للقاعدة وترجّع <code>true/false</code>. ما تنساش <code>WHERE</code> في UPDATE وDELETE، وإلا تبدّل ولا تحذف الكل!</p>
+  <p class="ar" lang="ar"><code>mysqli_affected_rows($conn)</code> ترجّعلك قدّاش من سطر تأثّر بآخر طلب (INSERT/UPDATE/DELETE). كان ترجّع 0 يعني ما تبدّل شي.</p>
+</section>
+
+<section class="p d">
+  <h2>4. SELECT et affichage</h2>
+<pre>$res = <b>mysqli_query</b>($conn, "SELECT * FROM eleve");
+
+if (<b>mysqli_num_rows</b>($res) &gt; 0) {
+  while ($row = <b>mysqli_fetch_array</b>($res)) {
+    echo $row['cin'] . " " . $row['nom'];
+  }
+} else { echo "Aucun élève trouvé !"; }</pre>
+  <p class="ar" lang="ar"><code>num_rows</code> تعطيك عدد السطور. <code>fetch_array</code> تجيب سطر في كل دورة من الـ <code>while</code> لين تخلص. تقرا بإسم العمود <code>$row['nom']</code> ولا بالرقم <code>$row[0]</code>.</p>
+</section>
+
+<section class="p g">
+  <h2>5. Affichage en tableau + style</h2>
+  <div class="two">
+    <div>
+      <p class="fr">PHP : générer le tableau</p>
+<pre>echo "&lt;table class='tab'&gt;";
+echo "&lt;tr&gt;&lt;th&gt;CIN&lt;/th&gt;&lt;th&gt;Nom&lt;/th&gt;&lt;th&gt;Moyenne&lt;/th&gt;&lt;/tr&gt;";
+while ($row = <b>mysqli_fetch_array</b>($res)) {
+  echo "&lt;tr&gt;";
+  echo "&lt;td&gt;" . $row['cin'] . "&lt;/td&gt;";
+  echo "&lt;td&gt;" . $row['nom'] . "&lt;/td&gt;";
+  echo "&lt;td&gt;" . $row['moyenne'] . "&lt;/td&gt;";
+  echo "&lt;/tr&gt;";
+}
+echo "&lt;/table&gt;";</pre>
+    </div>
+    <div>
+      <p class="fr">CSS : style du tableau</p>
+<pre>.tab { border-collapse: collapse; width: 100%; }
+.tab th, .tab td {
+  border: 1px solid #333;
+  padding: 8px; text-align: center;
+}
+.tab th { background-color: #6b4fbb; color: white; }
+.tab tr:nth-child(even) { background-color: #f3eefc; }</pre>
+    </div>
+  </div>
+  <p class="ar" lang="ar"><code>echo</code> تكتب كود HTML: <code>tr</code> سطر، <code>th</code> عنوان عمود (مرة وحدة قبل الـ while)، <code>td</code> خانة (داخل الـ while، سطر لكل نتيجة). باش تزيّن الجدول عطيه <code>class='tab'</code> واكتب الستايل في ملف CSS ولا داخل <code>&lt;style&gt;</code>. بالسرعة: <code>&lt;table border='1'&gt;</code> تعطيك إطار بلا CSS.</p>
+</section>
+
+<section class="p e">
+  <h2>6. Les fonctions</h2>
+  <table lang="ar">
+    <tr><td>mysqli_connect()</td><td>تفتح الاتصال بالسيرفر والـ base</td></tr>
+    <tr><td>mysqli_query()</td><td>تبعث طلب SQL</td></tr>
+    <tr><td>mysqli_num_rows()</td><td>عدد السطور الراجعة من SELECT</td></tr>
+    <tr><td>mysqli_affected_rows()</td><td>عدد السطور لي تأثّرو (INSERT/UPDATE/DELETE)</td></tr>
+    <tr><td>mysqli_fetch_array()</td><td>تجيب سطر في كل مرة</td></tr>
+  </table>
+</section>
+
+<section class="p f">
+  <h2>7. À retenir !</h2>
+  <ol lang="ar">
+    <li><span>اتصل بالـ base بـ <code class="tag">mysqli_connect</code></span></li>
+    <li><span>ابعث الطلب بـ <code class="tag">mysqli_query</code></span></li>
+    <li><span>بعد INSERT/UPDATE/DELETE استعمل <code class="tag">mysqli_affected_rows</code></span></li>
+    <li><span>اقرا SELECT بـ <code class="tag">fetch_array</code> داخل <code class="tag">while</code> واعرضو في <code class="tag">table</code></span></li>
+  </ol>
+  <div class="warn ar" lang="ar">نصيحة: الطلبات هنا مكتوبة كيما في الامتحان. في المشاريع الحقيقية استعمل prepared statements باش تحمي من SQL injection.</div>
+</section>
+
+</div>
+
+<div class="title" style="margin:44px 0 30px">
+  <h1>Select · Radio · Checkbox</h1>
+  <p lang="ar">كيفاش نقرا قيم عناصر الفورم في PHP</p>
+</div>
+
+<div class="grid">
+
+<section class="p a">
+  <h2>8. Select / option</h2>
+<pre>&lt;select name="classe"&gt;
+  &lt;option value=""&gt;-- Choisir --&lt;/option&gt;
+  &lt;option value="4info"&gt;4 Info&lt;/option&gt;
+  &lt;option value="4math"&gt;4 Math&lt;/option&gt;
+&lt;/select&gt;</pre>
+<pre>$classe = <b>$_POST['classe']</b>;
+echo $classe;   // 4info</pre>
+  <p class="ar" lang="ar">PHP تقرا الـ <code>value</code> متاع الـ option المختارة، مش النص لي يظهر للمستخدم. <code>$_POST['classe']</code> تعطيك القيمة مباشرة.</p>
+  <p class="ar" lang="ar">اختيار متعدد؟ زيد <code>multiple</code> وسمّيها <code>name="classe[]"</code>، والنتيجة array تقراها بـ <code>foreach</code>.</p>
+</section>
+
+<section class="p c">
+  <h2>9. Radio</h2>
+<pre>&lt;input type="radio" name="genre" value="M"&gt; Garçon
+&lt;input type="radio" name="genre" value="F"&gt; Fille</pre>
+<pre>if (<b>isset</b>($_POST['genre'])) {
+  $genre = <b>$_POST['genre']</b>;   // M ou F
+}</pre>
+  <p class="ar" lang="ar">كل الـ radio لازم عندهم نفس الـ <code>name</code> باش تختار وحدة برك. كان المستخدم ما اختار حتى وحدة، ما يتبعث شي، علاش نستعمل <code>isset</code>.</p>
+</section>
+
+<section class="p b">
+  <h2>10. Checkbox</h2>
+<pre>&lt;!-- واحد --&gt;
+&lt;input type="checkbox" name="newsletter" value="oui"&gt;
+
+&lt;!-- برشا --&gt;
+&lt;input type="checkbox" name="lang[]" value="php"&gt; PHP
+&lt;input type="checkbox" name="lang[]" value="js"&gt; JS</pre>
+<pre>if (<b>isset</b>($_POST['newsletter'])) { echo "coché"; }
+
+if (<b>isset</b>($_POST['lang'])) {
+  <b>foreach</b> ($_POST['lang'] as $l) {
+    echo $l . " ";
+  }
+}</pre>
+  <p class="ar" lang="ar">الـ checkbox لي ما تمّش اختياره ما يتبعثش أصلا. بالـ <code>[]</code> في الاسم، كل القيم المختارة تتجمع في array.</p>
+</section>
+
+<section class="p d">
+  <h2>11. Résumé</h2>
+  <table lang="ar">
+    <tr><td>text / select</td><td><code>$_POST['name']</code> تعطيك القيمة مباشرة</td></tr>
+    <tr><td>radio</td><td><code>isset</code> وبعدها <code>$_POST['name']</code></td></tr>
+    <tr><td>checkbox (واحد)</td><td><code>isset</code> برك: مختار ولا لا</td></tr>
+    <tr><td>checkbox (برشا)</td><td><code>isset</code> + <code>foreach</code> على الـ array</td></tr>
+  </table>
+</section>
+
+<section class="p g">
+  <h2>12. Exemple complet</h2>
+  <div class="two">
+    <div>
+      <p class="fr">HTML : formulaire.html</p>
+<pre>&lt;form action="traitement.php" method="POST"&gt;
+  &lt;input type="text" name="nom"&gt;
+  &lt;select name="classe"&gt;
+    &lt;option value="4info"&gt;4 Info&lt;/option&gt;
+    &lt;option value="4math"&gt;4 Math&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;input type="radio" name="genre" value="M"&gt; M
+  &lt;input type="radio" name="genre" value="F"&gt; F
+  &lt;input type="checkbox" name="lang[]" value="php"&gt; PHP
+  &lt;input type="checkbox" name="lang[]" value="js"&gt; JS
+  &lt;input type="submit" name="btn_send"&gt;
+&lt;/form&gt;</pre>
+    </div>
+    <div>
+      <p class="fr">PHP : traitement.php</p>
+<pre>if (<b>isset</b>($_POST['btn_send'])) {
+  $nom    = $_POST['nom'];
+  $classe = $_POST['classe'];
+
+  if (isset($_POST['genre'])) {
+    $genre = $_POST['genre'];
+  }
+  if (isset($_POST['lang'])) {
+    foreach ($_POST['lang'] as $l) {
+      echo $l . " ";
+    }
+  }
+}</pre>
+    </div>
+  </div>
+  <p class="ar" lang="ar">الاسم والـ select يتقراو مباشرة. الـ radio يحتاج <code>isset</code> لأنو ممكن ما يتختارش. الـ checkbox يتبعث كـ array فنقراوه بـ <code>foreach</code>.</p>
+</section>
+
+</div>
+<div class="foot">{• •} BAC INFO ♡</div>
+</div>
+</body>
+</html>
